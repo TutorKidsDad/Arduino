@@ -1,16 +1,16 @@
 // Pin definitions
 #define LEFT_SENSOR A0           // Left IR sensor input
 #define RIGHT_SENSOR A1          // Right IR sensor input
-#define MOTOR_LEFT_FORWARD 5     // Motor 1 IN1
-#define MOTOR_LEFT_BACKWARD 6    // Motor 1 IN2
-#define MOTOR_RIGHT_FORWARD 9    // Motor 2 IN3
-#define MOTOR_RIGHT_BACKWARD 10  // Motor 2 IN4
-#define ENABLE_LEFT 3            // Enable pin for Motor 1
-#define ENABLE_RIGHT 11          // Enable pin for Motor 2
+#define MOTOR_LEFT_FORWARD 8     // Motor 1 IN1
+#define MOTOR_LEFT_BACKWARD 9    // Motor 1 IN2
+#define MOTOR_RIGHT_FORWARD 11    // Motor 2 IN3
+#define MOTOR_RIGHT_BACKWARD 12  // Motor 2 IN4
+#define ENABLE_LEFT 10            // Enable pin for Motor 1
+#define ENABLE_RIGHT 13          // Enable pin for Motor 2
 
 void setup() {
   // Start Serial communication for monitoring
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   // IR sensor pins
   pinMode(LEFT_SENSOR, INPUT);
@@ -18,7 +18,7 @@ void setup() {
 
   // Motor control pins
   pinMode(MOTOR_LEFT_FORWARD, OUTPUT);
-  pinMode(MOTOR_LEFT_BACKWARD, OUTPUT);
+  pinMode(MOTOR_LEFT_BACKWARD, OUTPUT); 
   pinMode(MOTOR_RIGHT_FORWARD, OUTPUT);
   pinMode(MOTOR_RIGHT_BACKWARD, OUTPUT);
   pinMode(ENABLE_LEFT, OUTPUT);
