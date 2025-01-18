@@ -10,7 +10,7 @@
 
 void setup() {
   // Start Serial communication for monitoring
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // IR sensor pins
   pinMode(LEFT_SENSOR, INPUT);
@@ -40,9 +40,9 @@ void loop() {
 
   // Log sensor values to the Serial Monitor
   Serial.print("Left Sensor: ");
-  Serial.print(leftSensorValue == 0 ? "Black" : "White");
+  Serial.print(leftSensorValue == 1 ? "Black" : "White");
   Serial.print(", Right Sensor: ");
-  Serial.println(rightSensorValue == 0 ? "Black" : "White");
+  Serial.println(rightSensorValue == 1 ? "Black" : "White");
 
   // Logic for line following
   if (leftSensorValue == 0 && rightSensorValue == 0) {
