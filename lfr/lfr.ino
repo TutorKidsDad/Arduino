@@ -1,22 +1,18 @@
-// Pin definitions
-#define LEFT_SENSOR A0           // Left IR sensor input
-#define RIGHT_SENSOR A1          // Right IR sensor input
-#define MOTOR_LEFT_FORWARD 8     // Motor 1 IN1
-#define MOTOR_LEFT_BACKWARD 9    // Motor 1 IN2
-#define MOTOR_RIGHT_FORWARD 11    // Motor 2 IN3
-#define MOTOR_RIGHT_BACKWARD 12  // Motor 2 IN4
-#define ENABLE_LEFT 10            // Enable pin for Motor 1
-#define ENABLE_RIGHT 13          // Enable pin for Motor 2
+const int LEFT_SENSOR = A0;
+const int RIGHT_SENSOR = A1;
+const int MOTOR_LEFT_FORWARD = 8;
+const int MOTOR_LEFT_BACKWARD = 9;
+const int MOTOR_RIGHT_FORWARD = 11;
+const int MOTOR_RIGHT_BACKWARD = 12;
+const int ENABLE_LEFT = 10;
+const int ENABLE_RIGHT = 13;
+const int MOTOR_SPEED = 200; // Adjustable speed (0-255)
 
 void setup() {
-  // Start Serial communication for monitoring
   Serial.begin(115200);
 
-  // IR sensor pins
   pinMode(LEFT_SENSOR, INPUT);
   pinMode(RIGHT_SENSOR, INPUT);
-
-  // Motor control pins
   pinMode(MOTOR_LEFT_FORWARD, OUTPUT);
   pinMode(MOTOR_LEFT_BACKWARD, OUTPUT); 
   pinMode(MOTOR_RIGHT_FORWARD, OUTPUT);
@@ -24,47 +20,45 @@ void setup() {
   pinMode(ENABLE_LEFT, OUTPUT);
   pinMode(ENABLE_RIGHT, OUTPUT);
 
-  // Set motor speed to maximum at startup
-  analogWrite(ENABLE_LEFT, 255);  // Max speed (0-255)
-  analogWrite(ENABLE_RIGHT, 255); // Max speed (0-255)
+  analogWrite(ENABLE_LEFT, MOTOR_SPEED);
+  analogWrite(ENABLE_RIGHT, MOTOR_SPEED);
 
-  // Ensure motors are off at startup
   stopMotors();
-
   Serial.println("Setup complete. Robot is ready.");
 }
 
 void loop() {
-  int leftSensorValue = digitalRead(LEFT_SENSOR);  // Read left sensor (0 = black, 1 = white)
-  int rightSensorValue = digitalRead(RIGHT_SENSOR); // Read right sensor (0 = black, 1 = white)
+  static unsigned long lastTime = 0;
+  const int interval = 100;
 
-  // Log sensor values to the Serial Monitor
+  if (millis() - lastTime >= interval) {
+    lastTime = millis();
+    readSensorsAndControlMotors();
+  }
+}
+
+void readSensorsAndControlMotors() {
+  int leftSensorValue = digitalRead(LEFT_SENSOR);  
+  int rightSensorValue = digitalRead(RIGHT_SENSOR); 
+
   Serial.print("Left Sensor: ");
   Serial.print(leftSensorValue == 1 ? "Black" : "White");
   Serial.print(", Right Sensor: ");
   Serial.println(rightSensorValue == 1 ? "Black" : "White");
 
-  // Logic for line following
   if (leftSensorValue == 0 && rightSensorValue == 0) {
-    // Both sensors on black line - go straight
-    Serial.println("Action: Moving Forward");
+    Serial.println("Moving Forward");
     moveForward();
   } else if (leftSensorValue == 0 && rightSensorValue == 1) {
-    // Left sensor on black, right on white - turn left
-    Serial.println("Action: Turning Left");
+    Serial.println("Turning Left");
     turnLeft();
   } else if (leftSensorValue == 1 && rightSensorValue == 0) {
-    // Left sensor on white, right on black - turn right
-    Serial.println("Action: Turning Right");
+    Serial.println("Turning Right");
     turnRight();
   } else {
-    // Both sensors on white - stop
-    Serial.println("Action: Stopping");
+    Serial.println("Stopping");
     stopMotors();
   }
-
-  // Small delay for readability in Serial Monitor
-  delay(100);
 }
 
 void moveForward() {
@@ -75,17 +69,13 @@ void moveForward() {
 }
 
 void turnLeft() {
-  digitalWrite(MOTOR_LEFT_FORWARD, LOW);
-  digitalWrite(MOTOR_LEFT_BACKWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_FORWARD, HIGH);
-  digitalWrite(MOTOR_RIGHT_BACKWARD, LOW);
+  analogWrite(ENABLE_LEFT, 100);
+  analogWrite(ENABLE_RIGHT, MOTOR_SPEED);
 }
 
 void turnRight() {
-  digitalWrite(MOTOR_LEFT_FORWARD, HIGH);
-  digitalWrite(MOTOR_LEFT_BACKWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_FORWARD, LOW);
-  digitalWrite(MOTOR_RIGHT_BACKWARD, LOW);
+  analogWrite(ENABLE_LEFT, MOTOR_SPEED);
+  analogWrite(ENABLE_RIGHT, 100);
 }
 
 void stopMotors() {

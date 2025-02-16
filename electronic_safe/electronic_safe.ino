@@ -1,227 +1,158 @@
-/* 
-Made by Marco Fusco
-May 20, 2016
-Contact me at: marcofusco111@gmail.com
-*/
-   
-
-#include <LiquidCrystal.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
 #include <Servo.h>
 
+// Define constants for servo positions and delays
+#define LOCKED_POS 50
+#define UNLOCKED_POS 150
+#define BUTTON_DELAY 250
+#define SAVE_DELAY 30000
+#define DISPLAY_DELAY 200
+#define MAX_FAILED_ATTEMPTS 3
+
+// Define pins for buttons
+#define BUTTON_PIN_1 2
+#define BUTTON_PIN_2 3
+#define BUTTON_PIN_3 4
+#define BUTTON_PIN_4 5
+#define ENTER_BUTTON 10
+#define CLEAR_LOCK_BUTTON 13
+
+// Define EEPROM and other variables
 int address = 0;
-static unsigned long SaveTimer;
-static unsigned long SaveDelay = (30 * 1000); 
+char CODE[10] = "1234E";
+char inputStr[10];
+char codeLength = 4;
+int pos = 0;
+bool unlocked = false;
+unsigned long saveTimer = 0;
+unsigned long displayTimer = 0;
+int failedAttempts = 0;
 
+// Setup I2C LCD
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-char CODE[10] = "1234E"; 
-char Str[10]; 
-char CodeLength = 4;
-int Pos = 0;
-bool Unlocked;
-static unsigned long DisplayTimer; 
-static unsigned long DisplayDelay = 200;
-
-LiquidCrystal lcd(12, 11, 9, 8, 7, 6); 
-
-
-int buttonPin1 = 2;   
-int buttonPin2 = 3;
-int buttonPin3 = 4;
-int buttonPin4 = 5;
-
-int enterbutton = 10; 
-int clearlockbutton = 13;
-
-Servo myServo;
+// Servo instance
+Servo lockServo;
 
 void setup() {
-
-  myServo.attach(A1);
+  // Initialize servo and set locked position
+  lockServo.attach(A1);
+  lockServo.write(LOCKED_POS);
   
-  int EEPROMCodeOK = true;
-  for (Pos = 0; Pos <= (CodeLength); Pos++) {
-    Str[Pos] =  EEPROM.read(Pos);
-    if (!(strrchr("1123456789", Str[Pos]))) { 
-      // not a valid code
-      EEPROMCodeOK = false;
-    }
-  }
-  Pos++;
-  Str[Pos] =  EEPROM.read(Pos); 
-  if (Str[CodeLength + 1] != 'E') EEPROMCodeOK = false; 
-  if (EEPROMCodeOK) {
-    Str[CodeLength + 2] = '\0';
-    strncpy(CODE, Str, CodeLength + 1);
-  }
-  ClearCode();
+  // Initialize buttons
+  pinMode(BUTTON_PIN_1, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_2, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_3, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_4, INPUT_PULLUP);
+  pinMode(ENTER_BUTTON, INPUT_PULLUP);
+  pinMode(CLEAR_LOCK_BUTTON, INPUT_PULLUP);
 
-  pinMode(buttonPin1, INPUT_PULLUP);
-  pinMode(buttonPin2, INPUT_PULLUP);
-  pinMode(buttonPin3, INPUT_PULLUP);
-  pinMode(buttonPin4, INPUT_PULLUP);
-
-  pinMode(enterbutton, INPUT_PULLUP);
-  pinMode(clearlockbutton, INPUT_PULLUP);
-
-  lcd.begin(16, 2);
+  // Initialize I2C LCD
+  lcd.init();
+  lcd.backlight();
+  
+  // Display welcome message
   lcd.setCursor(0, 0);
-  lcd.print("Hello.");
+  lcd.print("Welcome!");
   delay(2000);
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Password:");
+  lcd.print("Enter Password:");
 
-  DisplayTimer = millis() + 200;
+  // Read EEPROM-stored code
+  if (loadCodeFromEEPROM()) {
+    lcd.setCursor(0, 1);
+    lcd.print("Code Loaded");
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("Invalid EEPROM");
+  }
+  delay(2000);
+  lcd.clear();
 }
-
 
 void loop() {
-  
-  Lock();
-  
-  Pos = constrain(Pos, 0, CodeLength);
-
-  int buttonState1 = digitalRead(buttonPin1);  
-  int buttonState2 = digitalRead(buttonPin2);
-  int buttonState3 = digitalRead(buttonPin3);
-  int buttonState4 = digitalRead(buttonPin4);
-
-  int clButtonState = digitalRead(clearlockbutton);
-  int enterButtonState = digitalRead(enterbutton);
-
-  lcd.setCursor(9, 0);
-
-  if (buttonState1 == LOW) {
-    Str[Pos] = '1';
-    Pos++;
-    Str[Pos] = '\0';
-    delay(250); 
-    while (digitalRead(buttonPin1) == LOW); 
-
-  }
-
-  else if (buttonState2 == LOW) {
-    Str[Pos] = '2';
-    Pos++;
-    Str[Pos] = '\0';
-    delay(250); 
-    while (digitalRead(buttonPin2) == LOW);
-
-  }
-
-  else if (buttonState3 == LOW) {
-    Str[Pos] = '3';
-    Pos++;
-    Str[Pos] = '\0';
-    delay(250); 
-    while (digitalRead(buttonPin3) == LOW);
-  }
-
-  else if (buttonState4 == LOW) {
-    Str[Pos] = '4';
-    Pos++;
-    Str[Pos] = '\0';
-    delay(250); 
-    while (digitalRead(buttonPin4) == LOW); 
-
-  }
-  else if (enterButtonState == LOW) {
-    Str[Pos] = 'E';
-    Pos++;
-    Str[Pos] = '\0';
-    delay(250);
-    while (digitalRead(buttonPin1) == LOW); 
-     if (strcmp (Str,CODE) == 0) {
-      Unlocked = true;
-      lcd.setCursor(0, 0);
-      lcd.print(" Access Granted");
-      delay(2000);
-      lcd.clear();
-      lcd.print("    Unlocked");
-    } 
-    else if (SaveTimer > millis() && (Pos + 1) == CodeLength) { 
-
-      strcpy(CODE, Str);
-      for (Pos = 0; Pos <= (CodeLength + 1); Pos++) {
-        EEPROM.write(Pos, Str[Pos]);
-      }
-      lcd.setCursor(0, 0);
-      lcd.print("Saving Code:");
-      lcd.setCursor(0, 1);
-      lcd.print(Str);
-
-      Unlocked = true;
-    }
-
-    else { 
-
-      lcd.clear();
-      lcd.print(" Access Denied.");
-      delay(2000);
-      lcd.clear();
-      lcd.print("Password:");
-
-    }
-
-    while (Unlocked) {
-      Unlock();
-      if (digitalRead(clearlockbutton) == LOW) {
-        delay(200);
-        lcd.clear();
-        lcd.print("     Locked");
-        delay(2000);
-        lcd.clear();
-        Unlocked = false;
-        SaveTimer = millis() + 30000;
-      }
-    }
-    
-    ClearCode();
-
-    
-  }
-
-  else if (clButtonState == LOW) {
-    delay(500);
-
-    while (clearlockbutton == LOW);
-    if ((millis() - SaveTimer) > 4500) {
-      
-    }
-    
-    ClearCode();
-    
-  }
-
-  if ( (long)( millis() - DisplayTimer ) >= 0) {
-    DisplayTimer += DisplayDelay;
-    lcd.setCursor(9, 0); 
-    lcd.print(Str);
-    lcd.print("     ");
-
+  checkButtons();
+  updateDisplay();
+  if (unlocked && digitalRead(CLEAR_LOCK_BUTTON) == LOW) {
+    lock();
+    delay(2000);
   }
 }
 
-void ClearCode() {
-  
-  Pos = 0;
-  Str[Pos] = '\0';
-  lcd.setCursor(0, 0);
-  lcd.print("Password:");
-  lcd.setCursor(0, 1);
-  lcd.print("          ");
-  
+void checkButtons() {
+  // Check if buttons are pressed and update input string
+  if (digitalRead(BUTTON_PIN_1) == LOW) { addCharToInput('1'); }
+  else if (digitalRead(BUTTON_PIN_2) == LOW) { addCharToInput('2'); }
+  else if (digitalRead(BUTTON_PIN_3) == LOW) { addCharToInput('3'); }
+  else if (digitalRead(BUTTON_PIN_4) == LOW) { addCharToInput('4'); }
+  else if (digitalRead(ENTER_BUTTON) == LOW) { validateCode(); }
 }
 
-void Unlock() {
-
-  myServo.write(150);
-  
+void addCharToInput(char c) {
+  inputStr[pos++] = c;
+  inputStr[pos] = '\0';  // Null-terminate
+  delay(BUTTON_DELAY);
 }
 
-void Lock() {
+void validateCode() {
+  inputStr[pos++] = 'E';  // End character
+  inputStr[pos] = '\0';   // Null-terminate
+  delay(BUTTON_DELAY);
 
-  myServo.write(50);
+  if (strcmp(inputStr, CODE) == 0) {
+    unlock();
+  } else {
+    failedAttempts++;
+    lcd.clear();
+    lcd.print("Access Denied");
+    delay(2000);
+    lcd.clear();
+    lcd.print("Enter Password:");
+    if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
+      lock();
+      failedAttempts = 0;
+    }
+  }
+  clearInput();
+}
 
+void updateDisplay() {
+  if (millis() - displayTimer > DISPLAY_DELAY) {
+    displayTimer = millis();
+    lcd.setCursor(9, 0);
+    lcd.print(inputStr);
+  }
+}
+
+void clearInput() {
+  pos = 0;
+  inputStr[0] = '\0';
+}
+
+void unlock() {
+  lockServo.write(UNLOCKED_POS);
+  unlocked = true;
+  lcd.clear();
+  lcd.print("Access Granted");
+  delay(2000);
+}
+
+void lock() {
+  lockServo.write(LOCKED_POS);
+  unlocked = false;
+  lcd.clear();
+  lcd.print("Locked");
+}
+
+bool loadCodeFromEEPROM() {
+  // Load stored code from EEPROM
+  for (int i = 0; i < codeLength + 1; i++) {
+    CODE[i] = EEPROM.read(i);
+    if (!isdigit(CODE[i]) && CODE[i] != 'E') return false;
+  }
+  CODE[codeLength + 1] = '\0';  // Null-terminate the string
+  return true;
 }

@@ -1,3 +1,6 @@
+#include <Wire.h>                // Include Wire library for I2C
+#include <LiquidCrystal_I2C.h>   // Include I2C LCD library
+
 // Pin definitions for the 4 LEDs
 #define LED1 2
 #define LED2 3
@@ -7,7 +10,63 @@
 // Delay time between each LED chase step (in milliseconds)
 #define CHASE_DELAY 200
 
+// Initialize the I2C LCD with address 0x27 and 16x2 size
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Function to control the LEDs
+void controlLED(int led, bool state) {
+  digitalWrite(led, state ? HIGH : LOW);  // Set the LED state
+}
+
+// Function to run LED chase in forward direction
+void ledChaseForward() {
+  controlLED(LED1, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED1, LOW);
+
+  controlLED(LED2, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED2, LOW);
+
+  controlLED(LED3, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED3, LOW);
+
+  controlLED(LED4, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED4, LOW);
+}
+
+// Function to run LED chase in reverse direction
+void ledChaseReverse() {
+  controlLED(LED4, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED4, LOW);
+
+  controlLED(LED3, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED3, LOW);
+
+  controlLED(LED2, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED2, LOW);
+
+  controlLED(LED1, HIGH);
+  delay(CHASE_DELAY);
+  controlLED(LED1, LOW);
+}
+
 void setup() {
+  // Initialize the I2C LCD
+  lcd.init();
+  lcd.backlight();  // Turn on the LCD backlight
+  
+  // Display startup message on the LCD
+  lcd.setCursor(0, 0);
+  lcd.print("LED Chase Pattern");
+  lcd.setCursor(0, 1);
+  lcd.print("Running...");
+
   // Set the LED pins as OUTPUT
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
@@ -15,44 +74,16 @@ void setup() {
   pinMode(LED4, OUTPUT);
 
   // Ensure all LEDs are off at the start
-  digitalWrite(LED1, LOW);
-  digitalWrite(LED2, LOW);
-  digitalWrite(LED3, LOW);
-  digitalWrite(LED4, LOW);
+  controlLED(LED1, LOW);
+  controlLED(LED2, LOW);
+  controlLED(LED3, LOW);
+  controlLED(LED4, LOW);
 }
 
 void loop() {
-  // Turn on LEDs one by one in a chase pattern
-  digitalWrite(LED1, HIGH);  // Turn on LED1
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED1, LOW);   // Turn off LED1
+  // Run the LED chase forward
+  ledChaseForward();
 
-  digitalWrite(LED2, HIGH);  // Turn on LED2
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED2, LOW);   // Turn off LED2
-
-  digitalWrite(LED3, HIGH);  // Turn on LED3
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED3, LOW);   // Turn off LED3
-
-  digitalWrite(LED4, HIGH);  // Turn on LED4
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED4, LOW);   // Turn off LED4
-
-  // Optional: Reverse chase for a back-and-forth effect
-  digitalWrite(LED4, HIGH);  // Turn on LED4
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED4, LOW);   // Turn off LED4
-
-  digitalWrite(LED3, HIGH);  // Turn on LED3
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED3, LOW);   // Turn off LED3
-
-  digitalWrite(LED2, HIGH);  // Turn on LED2
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED2, LOW);   // Turn off LED2
-
-  digitalWrite(LED1, HIGH);  // Turn on LED1
-  delay(CHASE_DELAY);        // Wait
-  digitalWrite(LED1, LOW);   // Turn off LED1
+  // Run the LED chase in reverse for a back-and-forth effect
+  ledChaseReverse();
 }
