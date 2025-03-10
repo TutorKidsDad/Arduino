@@ -108,7 +108,7 @@ void setup() {
   check4IP(5000);
   if (!No_IP) {
     Serial.println("Connecting Wifi....");
-    connect_wifi("AT+CWJAP=\"OnlineTPS\",\"TPS@12345\"", 7000);   //AT+CWJAP=”wifi_username”,”wifi_password”
+    connect_wifi("AT+CWJAP=\"your_ssid\",\"youe_password\"", 7000);   //AT+CWJAP=”wifi_username”,”wifi_password”
   } else {
     // Do nothing, already connected
   }

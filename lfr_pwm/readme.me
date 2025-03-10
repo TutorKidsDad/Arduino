@@ -1,0 +1,70 @@
+# Line Follower Robot using IR Sensors and Motor Driver
+
+## Overview
+This project implements a simple line-following robot using an Arduino. The robot uses two IR sensors to detect the line and controls two motors to navigate accordingly. The movement logic follows a basic black/white path detection system.
+
+## Hardware Requirements
+- Arduino Uno or compatible microcontroller
+- L298N Motor Driver Module (or equivalent)
+- 2 DC Motors
+- 2 IR Sensors (for line detection)
+- Jumper Wires
+- Power Supply (Battery pack)
+
+## Circuit Connections
+### Motor Driver to Arduino
+- **mr1 (Motor Right Forward)** → **Pin 8**
+- **mr2 (Motor Right Backward)** → **Pin 9**
+- **ml1 (Motor Left Forward)** → **Pin 10**
+- **ml2 (Motor Left Backward)** → **Pin 11**
+- **enr (Right Motor Enable - PWM)** → **Pin 3**
+- **enl (Left Motor Enable - PWM)** → **Pin 5**
+
+### IR Sensors to Arduino
+- **sr (Right Sensor)** → **Pin 6**
+- **sl (Left Sensor)** → **Pin 7**
+
+### Other
+- **LED (Status Indicator)** → **Pin 13**
+- Power Supply (External battery recommended for motors)
+
+## Software Implementation
+### Setup
+- Initializes motor control pins as `OUTPUT`
+- Configures IR sensors as `INPUT`
+- Blinks an LED at startup for system initialization
+
+### Loop (Main Logic)
+- Reads IR sensor values:
+  - **LOW (0) = Black (line detected)**
+  - **HIGH (1) = White (no line)**
+- Movement decisions based on sensor readings:
+  - **Both sensors detect black** → Move **forward**
+  - **Left sensor detects white, right detects black** → Turn **left**
+  - **Left sensor detects black, right detects white** → Turn **right**
+  - **Both sensors detect white** → Stop
+
+## Functions
+- `forward()`: Moves both motors forward
+- `backward()`: Moves both motors backward (not used in this version)
+- `right()`: Stops right motor, moves left motor forward to turn right
+- `left()`: Stops left motor, moves right motor forward to turn left
+- `stop()`: Stops both motors
+
+## Usage
+1. Upload the code to the Arduino.
+2. Place the robot on a black track with a white background.
+3. The robot will follow the line based on sensor input.
+
+## Troubleshooting
+- Ensure correct wiring of motors and sensors.
+- Adjust `vspeed` and `tspeed` if movements are too slow or too fast.
+- Verify IR sensors work properly by testing their output manually.
+- Use a fully charged battery for consistent performance.
+
+## License
+This project is open-source and free to modify and distribute.
+
+## References
+- [Arduino IR Sensor Guide](https://www.arduino.cc/en/Tutorial)
+- [Motor Driver L298N Documentation](https://lastminuteengineers.com/l298n-dc-motor-arduino-tutorial/)

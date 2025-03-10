@@ -1,5 +1,4 @@
 
-// https://www.hackster.io/fishy-circuits/mini-elevator-3ad6f4
 //Built-in libraries
 #include <Stepper.h>
 #include <binary.h>
@@ -47,7 +46,7 @@ struct PersistentData {
 } persistentData;
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     
     mainMotor.setSpeed(4);
 
@@ -385,4 +384,3 @@ void setMatrixCorners(boolean value) {
 void turnOffArrows() {
     directionMatrix.clearDisplay(0);
 }
-//view rawelevator.ino hosted with ❤ by GitHub
