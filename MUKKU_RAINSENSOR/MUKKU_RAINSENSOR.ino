@@ -1,7 +1,7 @@
 // Define the pins
 const int rainSensorPin = A1;     // analog Pin connected to the rain sensor
-const int motorForwardPin = 9;    // Pin connected to the motor for forward rotation
-const int motorReversePin = 8;    // Pin connected to the motor for reverse rotation
+const int motorForwardPin = 9;    // digital Pin connected to the motor for forward rotation
+const int motorReversePin = 8;    // digital Pin connected to the motor for reverse rotation
 
 // Variables to track the state of the sensor and motor
 bool previousSensorState = LOW;   // Stores the previous state of the sensor
