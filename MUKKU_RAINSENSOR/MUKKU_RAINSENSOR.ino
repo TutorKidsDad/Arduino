@@ -1,5 +1,5 @@
 // Define the pins
-const int rainSensorPin = A1;     // Pin connected to the rain sensor
+const int rainSensorPin = A1;     // analog Pin connected to the rain sensor
 const int motorForwardPin = 9;    // Pin connected to the motor for forward rotation
 const int motorReversePin = 8;    // Pin connected to the motor for reverse rotation
 
