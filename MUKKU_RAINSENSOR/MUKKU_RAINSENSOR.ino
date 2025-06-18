@@ -20,7 +20,7 @@ void setup() {
 
 void loop() {
   int analogValue = analogRead(rainSensorPin);           // Read the analog value of the rain sensor
-  int currentSensorState = (analogValue < 500) ? HIGH : LOW;  // Inverted logic: LOW = no rain, HIGH = rain detected
+  int currentSensorState = (analogValue < 512) ? HIGH : LOW;  // Inverted logic: LOW = no rain, HIGH = rain detected
 
   Serial.print("Analog Reading (A1): ");
   Serial.print(analogValue);
